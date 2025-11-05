@@ -18,3 +18,4 @@ services:
       - ./frontend/:/app/frontend
     ports:
       - 3000:3000
+ 
