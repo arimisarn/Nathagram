@@ -1,17 +1,16 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeftIcon } from "@heroicons/react/solid";
 import {
   PhotographIcon,
-  DuplicateIcon,
-  PlusIcon,
   XIcon,
   EmojiHappyIcon,
   BadgeCheckIcon,
+  LocationMarkerIcon,
+  VideoCameraIcon,
 } from "@heroicons/react/outline";
-import { Swiper, SwiperSlide } from "swiper/react";
 import TextareaAutosize from "react-textarea-autosize";
-import { Picker } from "emoji-mart";
+import Picker from "@emoji-mart/react";
+import data from "@emoji-mart/data";
 import { useAppDispatch, useAppSelector } from "../redux/store";
 import { hideAddPostModal } from "../redux/slice/addPost";
 import { PostFormIntf } from "../interfaces/home/posts";
@@ -26,9 +25,7 @@ interface FileIntf {
 
 const AddPost: React.FC = () => {
   const navigate = useNavigate();
-
   const dispatch = useAppDispatch();
-
   const auth = useAppSelector((state) => state.auth);
 
   const intitialFormState = useMemo(() => {
@@ -42,21 +39,7 @@ const AddPost: React.FC = () => {
   }, []);
 
   const [form, setForm] = useState<PostFormIntf>(intitialFormState);
-
-  const initialSelectedFileState = useMemo(() => {
-    return {
-      src: "",
-      type: "",
-      name: "",
-    };
-  }, []);
-
-  const [selectedFile, setSelectedFile] = useState<FileIntf>(
-    initialSelectedFileState
-  );
   const [files, setFiles] = useState<FileIntf[]>([]);
-  const [showAddFile, setShowAddFile] = useState<boolean>(false);
-  const [currentPhase, setCurrentPhase] = useState<number>(1);
   const [showPicker, setShowPicker] = useState<boolean>(false);
   const [submitLoading, setSubmitLoading] = useState<boolean>(false);
   const [done, setDone] = useState<boolean>(false);
@@ -66,16 +49,14 @@ const AddPost: React.FC = () => {
     done && navigate(0);
   };
 
-  const handleFileOnChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    setSelected: boolean,
-    firstPhase: boolean
-  ) => {
-    const file = e.currentTarget.files?.item(0);
-    if (file) {
+  const handleFileOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = Array.from(e.target.files || []);
+
+    selectedFiles.forEach((file) => {
       const formShallow = { ...form };
       formShallow.files.push(file);
       setForm(formShallow);
+
       const fileReader = new FileReader();
       fileReader.onload = (e) => {
         const filesShallow = [...files];
@@ -85,75 +66,28 @@ const AddPost: React.FC = () => {
           name: file.name,
         });
         setFiles(filesShallow);
-        setSelected &&
-          setSelectedFile({
-            ...selectedFile,
-            src: e.target?.result as string,
-            type: file.type,
-            name: file.name,
-          });
       };
       fileReader.readAsDataURL(file);
-      e.target.value = "";
-      firstPhase && setCurrentPhase(2);
-    }
+    });
+
+    e.target.value = "";
   };
 
-  const handleFileType = useCallback(
-    (type: string) => {
-      return selectedFile?.type.startsWith(type);
-    },
-    [selectedFile]
-  );
+  const handleFileType = useCallback((type: string, file: FileIntf) => {
+    return file?.type.startsWith(type);
+  }, []);
 
-  const handleGetSelectFile = () => {
-    return handleFileType("image") ? (
-      <img
-        onClick={() => setShowAddFile(false)}
-        src={selectedFile.src}
-        className={`w-full h-full rounded-bl-xl ${
-          currentPhase === 2 && "rounded-br-xl"
-        } object-cover`}
-        alt={selectedFile.name}
-      />
-    ) : handleFileType("video") ? (
-      <video
-        src={selectedFile.src}
-        autoPlay
-        className="w-full h-full object-cover"
-      ></video>
-    ) : (
-      <></>
-    );
-  };
-
-  const handleSetSelectedFile = (
-    e: React.MouseEvent<HTMLElement>,
-    file: FileIntf
-  ) => {
-    setSelectedFile(file);
-  };
-
-  const handleRemoveFile = (
-    e: React.MouseEvent<HTMLDivElement>,
-    index: number
-  ) => {
+  const handleRemoveFile = (index: number) => {
     const formShallow = { ...form };
     formShallow.files.splice(index, 1);
     setForm(formShallow);
     const filesShallow = [...files];
     filesShallow.splice(index, 1);
     setFiles(filesShallow);
-    index === 0 && files.length > 0 && setSelectedFile(filesShallow[0]);
-    filesShallow.length < 1 && setCurrentPhase(1);
   };
 
-  const handleBackOnePhase = (e: React.MouseEvent<HTMLOrSVGElement>) => {
-    let currentPhaseNum = currentPhase;
-    setCurrentPhase(--currentPhaseNum);
-  };
-
-  const handleShowPicker = () => {
+  const handleShowPicker = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setShowPicker(!showPicker);
   };
 
@@ -186,13 +120,19 @@ const AddPost: React.FC = () => {
     });
   };
 
-  const handleOnSubmit = async (e: React.MouseEvent<HTMLSpanElement>) => {
+  const handleLocationAdd = () => {
+    const location = prompt("Où êtes-vous ?");
+    if (location) {
+      setForm({ ...form, location });
+    }
+  };
+
+  const handleOnSubmit = async () => {
+    if (!form.description.trim() && form.files.length === 0) return;
+
     setSubmitLoading(true);
     try {
       const formData = new FormData();
-
-      // I had to create a form data instance and adding the lists one by one.
-      // This the only way that i could find (I think there is a better way)
 
       form.files.forEach((file) => {
         formData.append("files", file);
@@ -215,261 +155,271 @@ const AddPost: React.FC = () => {
   };
 
   useEffect(() => {
-    document.addEventListener("click", () => {
+    const handleClickOutside = () => {
       setShowPicker(false);
-    });
-    return () => document.removeEventListener("click", () => {});
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
-  useEffect(() => {
-    if (currentPhase === 1) {
-      if (files.length > 0) {
-        setForm(intitialFormState);
-        setFiles([]);
-        setSelectedFile(initialSelectedFileState);
-        setShowAddFile(false);
-      }
-    }
-  }, [currentPhase, files, intitialFormState, initialSelectedFileState]);
-
   return (
-    <div className="h-full w-full fixed inset-0 z-50 bg-zinc-900 bg-opacity-90 flex items-center justify-center">
-      <XIcon
-        onClick={handleClosePostCreate}
-        className="absolute right-4 top-4"
-        width={35}
-        height={35}
-        cursor="pointer"
-        color="white"
-      />
-      <div className="bg-white rounded-xl w-auto h-[550px]">
+    <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+
+        @keyframes scaleIn {
+          from { opacity: 0; transform: scale(0.9); }
+          to { opacity: 1; transform: scale(1); }
+        }
+
+        .animate-fadeIn {
+          animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .animate-scaleIn {
+          animation: scaleIn 0.3s ease-out;
+        }
+      `}</style>
+      <div
+        className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-hidden animate-scaleIn"
+        onClick={(e) => e.stopPropagation()}
+      >
         {done ? (
-          <div className="h-full">
-            <div className="text-center px-4 py-2 border-b">
-              <span className="font-medium">Post shared</span>
+          <div className="transition-all duration-500 ease-in-out">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <h2 className="text-xl font-bold text-gray-800 flex-1 text-center">
+                Publication partagée
+              </h2>
+              <button
+                onClick={handleClosePostCreate}
+                className="w-10 h-10 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-colors"
+              >
+                <XIcon className="w-5 h-5 text-gray-600" />
+              </button>
             </div>
-            <div className="h-[92.5%] w-[550px] flex flex-col items-center justify-center">
-              <BadgeCheckIcon
-                width={80}
-                height={80}
-                className="text-green-500"
-              />
-            </div>
-          </div>
-        ) : submitLoading ? (
-          <div className="h-full">
-            <div className="text-center px-4 py-2 border-b">
-              <span className="font-medium">Post sharing</span>
-            </div>
-            <div className="h-[92.5%] w-[550px] flex flex-col items-center justify-center">
-              <Spin className="text-blue-500" w="w-7" h="h-7" />
-            </div>
-          </div>
-        ) : currentPhase === 1 ? (
-          <div className="h-full">
-            <div className="text-center px-4 py-2 border-b">
-              <span className="font-medium">Create new post</span>
-            </div>
-            <div className="h-[92.5%] w-[550px] flex flex-col items-center justify-center">
-              <div className="mb-2">
-                <PhotographIcon width={70} height={70} />
+            <div className="p-8 flex flex-col items-center justify-center">
+              <div className="animate-bounce mb-4">
+                <BadgeCheckIcon
+                  width={80}
+                  height={80}
+                  className="text-green-500"
+                />
               </div>
-              <div className="mb-6">
-                <span className="text-xl text-gray-600 font-thin">
-                  Upload photos and videos here
-                </span>
-              </div>
-              <div>
-                <label
-                  htmlFor="file"
-                  className="block relative bg-blue-500 rounded font-medium text-white px-2 py-1 text-sm cursor-pointer active:bg-blue-400 select-none"
-                >
-                  Select from computer
-                  <input
-                    onChange={(e) => handleFileOnChange(e, true, true)}
-                    type="file"
-                    id="file"
-                    name="file"
-                    className="hidden absolute inset-0"
-                  />
-                </label>
-              </div>
+              <p className="text-gray-600 font-medium text-center">
+                Votre publication a été partagée avec succès!
+              </p>
             </div>
           </div>
         ) : (
-          currentPhase >= 2 && (
-            <div className="h-full">
-              <div className="flex items-center justify-between px-4 py-2 border-b">
-                <ArrowLeftIcon
-                  className="select-none"
-                  cursor="pointer"
-                  width={23}
-                  height={23}
-                  onClick={handleBackOnePhase}
+          <>
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <h2 className="text-xl font-bold text-gray-800 flex-1 text-center">
+                Créer une publication
+              </h2>
+              <button
+                onClick={handleClosePostCreate}
+                className="w-10 h-10 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-colors"
+              >
+                <XIcon className="w-5 h-5 text-gray-600" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-4 max-h-[70vh] overflow-y-auto">
+              {/* User Info */}
+              <div className="flex items-center space-x-3 mb-4">
+                <img
+                  src={
+                    auth.user?.profile?.image ||
+                    "https://www.kindpng.com/picc/m/24-248253_user-profile-default-image-png-clipart-png-download.png"
+                  }
+                  alt="Profile"
+                  className="w-10 h-10 rounded-full object-cover"
                 />
-                {currentPhase === 2 ? (
-                  <>
-                    <span className="font-medium">Crop</span>
-                    <span
-                      className="cursor-pointer text-blue-500 active:text-blue-400 select-none"
-                      onClick={() => setCurrentPhase(3)}
-                    >
-                      Next
+                <div className="flex-1">
+                  <div className="flex items-center space-x-2 flex-wrap text-sm text-gray-600">
+                    <span className="font-semibold text-gray-800">
+                      {auth.user?.username}
                     </span>
-                  </>
-                ) : (
-                  <>
-                    <span className="font-medium">Create new post</span>
-                    <span
-                      className="cursor-pointer text-blue-500 active:text-blue-400 select-none"
-                      onClick={handleOnSubmit}
-                    >
-                      Share
-                    </span>
-                  </>
-                )}
-              </div>
-              <div className="h-[92.6%] flex">
-                <div className="w-[550px] relative">
-                  <>
-                    {handleGetSelectFile()}
-                    <span className="absolute transition rounded-full bottom-4 right-4 w-8 h-8 flex items-center justify-center bg-gray-900 opacity-80 hover:opacity-60 text-white cursor-pointer focus:bg-white focus:opacity-100 focus:text-gray-900 select-none">
-                      <DuplicateIcon
-                        onClick={() => setShowAddFile(!showAddFile)}
-                        width={20}
-                        height={20}
-                      />
-                    </span>
-                    {showAddFile && (
-                      <div className="absolute flex items-center p-2 w-full max-w-[93.7%] overflow-auto h-28 bg-gray-900 bg-opacity-70 rounded-lg right-4 bottom-16">
-                        <Swiper
-                          slidesPerView={3.5}
-                          spaceBetween={12}
-                          slidesPerGroup={1}
-                          loop={false}
-                          loopFillGroupWithBlank={true}
-                          className="mySwiper w-[85%] h-full"
-                        >
-                          {files.map((file, i) => (
-                            <SwiperSlide
-                              key={i}
-                              className="cursor-pointer h-full relative"
-                            >
-                              <img
-                                onClick={(e) => handleSetSelectedFile(e, file)}
-                                src={file.src}
-                                alt={file.name}
-                                className="w-full h-full object-cover"
-                              />
-                              <div
-                                onClick={(e) => handleRemoveFile(e, i)}
-                                className="absolute right-1 top-1 w-5 h-5 bg-gray-900 bg-opacity-90 transition rounded-full text-gray-200 flex items-center justify-center hover:bg-opacity-60"
-                              >
-                                <XIcon width={15} height={15} />
-                              </div>
-                            </SwiperSlide>
-                          ))}
-                        </Swiper>
-                        <div className="w-[15%] ml-4">
-                          <label
-                            className="rounded-full w-12 h-12 border cursor-pointer text-gray-100 flex items-center justify-center active:bg-gray-100"
-                            htmlFor="file"
-                          >
-                            <PlusIcon
-                              width={25}
-                              height={25}
-                              className="text-gray-400"
-                            />
-                            <input
-                              onChange={(e) =>
-                                handleFileOnChange(e, false, false)
-                              }
-                              type="file"
-                              id="file"
-                              name="file"
-                              className="hidden absolute inset-0"
-                            />
-                          </label>
-                        </div>
-                      </div>
-                    )}
-                  </>
-                </div>
-                {currentPhase === 3 && (
-                  <div className="w-[350px] py-4">
-                    <div className="flex items-center mb-4 px-4">
-                      <img
-                        src={auth.user?.profile?.image}
-                        alt={auth.user?.username}
-                        className="w-7 h-7 rounded-full object-cover"
-                      />
-                      <span className="ml-2 font-medium">
-                        {auth.user?.username}
-                      </span>
-                    </div>
-                    <div className="border-b pb-2.5">
-                      <div className="px-4">
-                        <>
-                          <TextareaAutosize
-                            onBlur={handleTextareaOnBlur}
-                            onChange={handleOnChange}
-                            value={form.description}
-                            name="description"
-                            maxRows={7}
-                            minRows={7}
-                            placeholder="Write a caption..."
-                            className="w-full outline-none resize-none mb-2"
-                          />
-                          <div
-                            className="relative"
-                            onClick={(e: React.MouseEvent) =>
-                              e.stopPropagation()
-                            }
-                          >
-                            <EmojiHappyIcon
-                              width={25}
-                              height={25}
-                              cursor="pointer"
-                              className="text-gray-400 mr-3"
-                              onClick={handleShowPicker}
-                            />
-                            {showPicker && (
-                              <Picker
-                                color="#3B82F6"
-                                style={{
-                                  position: "absolute",
-                                  bottom: 45,
-                                  left: 0,
-                                  zIndex: 2,
-                                  boxShadow:
-                                    "rgba(99, 99, 99, 0.2) 0 2px 8px 0",
-                                }}
-                                set="apple"
-                                showPreview={false}
-                                onSelect={handleEmojiSelect}
-                              />
-                            )}
-                          </div>
-                        </>
-                      </div>
-                    </div>
-                    <div className="pb-2.5 border-b px-4 pt-2.5">
-                      <input
-                        type="text"
-                        className="w-full outline-none"
-                        placeholder="Add location"
-                        name="location"
-                        value={form.location}
-                        onChange={handleOnChange}
-                      />
-                    </div>
+                    {form.location && <span>à {form.location}</span>}
                   </div>
-                )}
+                </div>
+              </div>
+
+              {/* Text Input */}
+              <TextareaAutosize
+                onBlur={handleTextareaOnBlur}
+                onChange={handleOnChange}
+                value={form.description}
+                name="description"
+                placeholder="Que voulez-vous dire ?"
+                className="w-full border-none outline-none resize-none text-lg text-gray-800 placeholder-gray-500 min-h-[100px] mb-4"
+                maxRows={6}
+                minRows={3}
+              />
+
+              {/* Selected Files Display */}
+              {files.length > 0 && (
+                <div className="mb-4 grid gap-2 grid-cols-1 sm:grid-cols-2">
+                  {files.map((file, i) => (
+                    <div key={i} className="relative group">
+                      {handleFileType("image", file) ? (
+                        <img
+                          src={file.src}
+                          alt={file.name}
+                          className="w-full h-32 object-cover rounded-lg"
+                        />
+                      ) : handleFileType("video", file) ? (
+                        <video
+                          src={file.src}
+                          className="w-full h-32 object-cover rounded-lg"
+                          controls
+                        />
+                      ) : null}
+                      <button
+                        onClick={() => handleRemoveFile(i)}
+                        className="absolute top-2 right-2 w-6 h-6 bg-gray-800 bg-opacity-70 hover:bg-opacity-90 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <XIcon className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="border border-gray-200 rounded-lg p-3 flex items-center space-x-3">
+                <label className="cursor-pointer">
+                  <div className="w-10 h-10 bg-green-100 hover:bg-green-200 rounded-full flex items-center justify-center transition-colors">
+                    <PhotographIcon className="w-5 h-5 text-green-600" />
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*,video/*"
+                    multiple
+                    onChange={handleFileOnChange}
+                    className="hidden"
+                  />
+                </label>
+
+                <button
+                  onClick={handleLocationAdd}
+                  className="w-10 h-10 bg-red-100 hover:bg-red-200 rounded-full flex items-center justify-center transition-colors"
+                  title="Ajouter un lieu"
+                >
+                  <LocationMarkerIcon className="w-5 h-5 text-red-600" />
+                </button>
+
+                <div className="relative">
+                  <button
+                    onClick={handleShowPicker}
+                    className="w-10 h-10 bg-yellow-100 hover:bg-yellow-200 rounded-full flex items-center justify-center transition-colors"
+                    title="Ajouter un emoji"
+                  >
+                    <EmojiHappyIcon className="w-5 h-5 text-yellow-600" />
+                  </button>
+
+                  {showPicker && (
+                    <div className="absolute bottom-12 left-0 z-10 animate-fadeIn">
+                      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+
+        @keyframes scaleIn {
+          from { opacity: 0; transform: scale(0.9); }
+          to { opacity: 1; transform: scale(1); }
+        }
+
+        .animate-fadeIn {
+          animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .animate-scaleIn {
+          animation: scaleIn 0.3s ease-out;
+        }
+      `}</style>
+                      <Picker
+                        data={data}
+                        onEmojiSelect={handleEmojiSelect}
+                        previewPosition="none"
+                        theme="light"
+                        style={{
+                          boxShadow:
+                            "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+                          borderRadius: "12px",
+                          overflow: "hidden",
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          )
+
+            {/* Footer */}
+            <div className="p-4 border-t border-gray-200">
+              <button
+                onClick={handleOnSubmit}
+                disabled={
+                  (!form.description.trim() && files.length === 0) ||
+                  submitLoading
+                }
+                className={`w-full py-3 px-4 rounded-lg font-medium transition-all ${
+                  (!form.description.trim() && files.length === 0) ||
+                  submitLoading
+                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                    : "bg-blue-600 hover:bg-blue-700 text-white transform hover:scale-[1.02] active:scale-[0.98]"
+                }`}
+              >
+                {submitLoading ? (
+                  <div className="flex items-center justify-center space-x-2">
+                    <Spin className="text-white" w="w-4" h="h-4" />
+                    <span>Publication...</span>
+                  </div>
+                ) : (
+                  "Publier"
+                )}
+              </button>
+            </div>
+          </>
         )}
       </div>
+
+      {/* <style jsx>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+
+        @keyframes scaleIn {
+          from {
+            opacity: 0;
+            transform: scale(0.9);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+
+        .animate-fadeIn {
+          animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .animate-scaleIn {
+          animation: scaleIn 0.3s ease-out;
+        }
+      `}</style> */}
     </div>
   );
 };

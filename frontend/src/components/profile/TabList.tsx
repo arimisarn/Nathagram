@@ -5,7 +5,6 @@ import {
   UserGroupIcon,
   VideoCameraIcon,
 } from "@heroicons/react/outline";
-import styles from "../../styles/profile/tabList.module.css";
 import { useAppSelector } from "../../redux/store";
 
 interface PropsIntf {
@@ -14,66 +13,74 @@ interface PropsIntf {
 
 const TabList: React.FC<PropsIntf> = ({ username }) => {
   const location = useLocation();
-
   const auth = useAppSelector((state) => state.auth);
 
+  const baseClasses =
+    "px-6 py-3 md:px-0 md:py-5 flex items-center gap-2 text-gray-600 hover:text-[#1877F2] transition relative";
+
+  const activeClasses =
+    "text-[#1877F2] font-semibold border-t-2 border-[#1877F2]";
+
   return (
-    <div>
-      <ul className="flex items-center border-t justify-center text-xs">
-        <li className="md:mr-16">
+    <div className="border-t border-gray-300">
+      <ul className="flex items-center justify-center text-sm font-medium">
+        {/* Publications */}
+        <li className="md:mr-12">
           <NavLink
             to=""
-            className={`${
-              !location.pathname.includes("saved") &&
-              !location.pathname.includes("tagged") &&
-              !location.pathname.includes("channel") &&
-              styles.active
-            } px-12 py-2 md:px-0 md:border-t md:border-transparent md:-mt-0.5 md:py-5 text-gray-500 flex items-center`}
+            className={({ isActive }) =>
+              `${
+                !location.pathname.includes("saved") &&
+                !location.pathname.includes("tagged") &&
+                !location.pathname.includes("channel")
+                  ? activeClasses
+                  : ""
+              } ${baseClasses}`
+            }
           >
-            <ViewGridIcon className="md:mr-1 w-7 h-7 md:w-4 md:h-4" />
-            <span className="font-medium hidden md:inline">POSTS</span>
+            <ViewGridIcon className="w-5 h-5" />
+            <span className="hidden md:inline">Publications</span>
           </NavLink>
         </li>
+
+        {/* Enregistrés si c'est mon profil */}
         {auth.user?.username === username ? (
-          <li className="md:mr-16">
+          <li className="md:mr-12">
             <NavLink
               to="saved"
-              className={(navData) =>
-                navData.isActive
-                  ? `${styles.active} px-12 py-2 md:px-0 md:border-t md:border-transparent md:-mt-0.5 md:py-5 text-gray-500 flex items-center`
-                  : "px-12 py-2 md:px-0 md:border-t md:border-transparent md:-mt-0.5 md:py-5 text-gray-500 flex items-center"
+              className={({ isActive }) =>
+                `${isActive ? activeClasses : ""} ${baseClasses}`
               }
             >
-              <BookmarkIcon className="md:mr-1 w-7 h-7 md:w-4 md:h-4" />
-              <span className="font-medium hidden md:inline">SAVED</span>
+              <BookmarkIcon className="w-5 h-5" />
+              <span className="hidden md:inline">Enregistrés</span>
             </NavLink>
           </li>
         ) : (
-          <li className="md:mr-16">
+          // Vidéos sinon
+          <li className="md:mr-12">
             <NavLink
               to="channel"
-              className={(navData) =>
-                navData.isActive
-                  ? `${styles.active} px-12 py-2 md:px-0 md:border-t md:border-transparent md:-mt-0.5 md:py-5 text-gray-500 flex items-center`
-                  : "px-12 py-2 md:px-0 md:border-t md:border-transparent md:-mt-0.5 md:py-5 text-gray-500 flex items-center"
+              className={({ isActive }) =>
+                `${isActive ? activeClasses : ""} ${baseClasses}`
               }
             >
-              <VideoCameraIcon className="md:mr-1 w-7 h-7 md:w-4 md:h-4" />
-              <span className="font-medium hidden md:inline">VIDEOS</span>
+              <VideoCameraIcon className="w-5 h-5" />
+              <span className="hidden md:inline">Vidéos</span>
             </NavLink>
           </li>
         )}
+
+        {/* Identifiés */}
         <li>
           <NavLink
             to="tagged"
-            className={(navData) =>
-              navData.isActive
-                ? `${styles.active} px-12 py-2 md:px-0 md:border-t md:border-transparent md:-mt-0.5 md:py-5 text-gray-500 flex items-center`
-                : "px-12 py-2 md:px-0 md:border-t md:border-transparent md:-mt-0.5 md:py-5 text-gray-500 flex items-center"
+            className={({ isActive }) =>
+              `${isActive ? activeClasses : ""} ${baseClasses}`
             }
           >
-            <UserGroupIcon className="md:mr-1 w-7 h-7 md:w-4 md:h-4" />
-            <span className="font-medium hidden md:inline">TAGGED</span>
+            <UserGroupIcon className="w-5 h-5" />
+            <span className="hidden md:inline">Identifiés</span>
           </NavLink>
         </li>
       </ul>

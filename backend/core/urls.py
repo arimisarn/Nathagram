@@ -29,7 +29,8 @@ urlpatterns = [
     path('users/', include('users.urls', namespace="users")),
     path('story/', include('story.urls')),
     path('post/', include('post.urls')),
-    path('comment/', include('comment.urls'))
+    path('comment/', include('comment.urls')),
+    path('chat/', include('chat.urls')),
 ]
 
 if settings.DEBUG:

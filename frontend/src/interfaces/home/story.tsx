@@ -1,18 +1,37 @@
+// import { ProfileInterface } from "../profile";
+
+// export interface nextStoryFieldsIntf {
+//   id: number,
+// }
+
+// export interface UserFieldIntf {
+//   id: number,
+//   username: string,
+//   is_verified: boolean,
+//   profile: ProfileInterface,
+//   next_story: nextStoryFieldsIntf | {}
+// }
+
+// export interface StoryIntf {
+//   loading: boolean,
+//   data: UserFieldIntf[] | []
+// };
+
 import { ProfileInterface } from "../profile";
 
 export interface nextStoryFieldsIntf {
-  id: number,
+  id: number;
 }
 
 export interface UserFieldIntf {
-  id: number,
-  username: string,
-  is_verified: boolean,
-  profile: ProfileInterface,
-  next_story: nextStoryFieldsIntf | {}
+  id: number;
+  username: string;
+  is_verified: boolean;
+  profile: ProfileInterface;
+  next_story?: nextStoryFieldsIntf;
 }
 
 export interface StoryIntf {
-  loading: boolean,
-  data: UserFieldIntf[] | []
-};
+  loading: boolean;
+  data: UserFieldIntf[];
+}

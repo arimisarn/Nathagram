@@ -1,7 +1,5 @@
 from django.core import exceptions
-from django.contrib.auth import (
-    authenticate, password_validation, get_user_model
-)
+from django.contrib.auth import authenticate, password_validation, get_user_model
 from rest_framework import serializers
 from .models import Profile
 from story.models import Story
@@ -15,14 +13,14 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        exclude = ('user',)
+        exclude = ("user",)
 
 
 class ProfileImageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ('image',)
+        fields = ("image",)
 
 
 class UserBaseSerializer(serializers.ModelSerializer):
@@ -31,7 +29,7 @@ class UserBaseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'is_verified', 'profile')
+        fields = ("id", "username", "is_verified", "profile")
 
 
 class ViewedUsersSerializer(serializers.ModelSerializer):
@@ -40,8 +38,7 @@ class ViewedUsersSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'username',
-                  'is_verified', 'profile')
+        fields = ("id", "username", "is_verified", "profile")
 
 
 class ViewerSerializer(serializers.ModelSerializer):
@@ -50,7 +47,7 @@ class ViewerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Viewer
-        fields = ('user', 'viewed_time')
+        fields = ("user", "viewed_time")
 
 
 class StorySerializer(serializers.ModelSerializer):
@@ -59,29 +56,29 @@ class StorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Story
-        exclude = ('user',)
+        exclude = ("user",)
 
 
 class UserSerializer(serializers.ModelSerializer):
-
-    profile = ProfileSerializer(read_only=True)
+    profile = ProfileImageSerializer(
+        read_only=True
+    )  # <-- utiliser le serializer qui renvoie l'image
     storys = StorySerializer(read_only=True, many=True)
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email',
-                  'is_verified', 'profile', 'storys')
+        fields = ("id", "username", "email", "is_verified", "profile", "storys")
 
 
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'password')
-        extra_kwargs = {'password': {'write_only': True}}
+        fields = ("id", "username", "email", "password")
+        extra_kwargs = {"password": {"write_only": True}}
 
     def validate(self, data):
         # get the password from the data
-        password = data.get('password')
+        password = data.get("password")
 
         errors = {}
         try:
@@ -90,7 +87,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
         # the exception raised here is different than serializers.ValidationError
         except exceptions.ValidationError as e:
-            errors['password'] = list(e.messages)
+            errors["password"] = list(e.messages)
 
         if errors:
             raise serializers.ValidationError(errors)
@@ -98,9 +95,9 @@ class RegisterSerializer(serializers.ModelSerializer):
         return super(RegisterSerializer, self).validate(data)
 
     def create(self, validated_data):
-        username = validated_data['username']
-        email = validated_data['email']
-        password = validated_data['password']
+        username = validated_data["username"]
+        email = validated_data["email"]
+        password = validated_data["password"]
         user = User.objects.create_user(username, email, password)
         return user
 
@@ -113,9 +110,8 @@ class LoginSerializer(serializers.Serializer):
         user = authenticate(**data)
         if user and user.is_active:
             return user
-        raise serializers.ValidationError(
-            "Username or Password is invalid!"
-        )
+        raise serializers.ValidationError("Username or Password is invalid!")
+
 
 class UserSuggestionsSerializer(serializers.ModelSerializer):
 
@@ -123,4 +119,4 @@ class UserSuggestionsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'is_verified', 'profile')
+        fields = ("id", "username", "is_verified", "profile")

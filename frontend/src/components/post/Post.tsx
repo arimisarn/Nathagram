@@ -12,7 +12,6 @@ import {
   HeartIcon as HeartIconSolid,
   BookmarkIcon as BookmarkIconSolid,
 } from "@heroicons/react/solid";
-import "emoji-mart/css/emoji-mart.css";
 import { Picker } from "emoji-mart";
 import TextareaAutosize from "react-textarea-autosize";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -42,6 +41,7 @@ import {
 } from "../../services/comment";
 import Spin from "../features/animation/Spin";
 import { getPostDescription, getCommentText } from "../../utils/utility";
+import { Send } from "lucide-react";
 
 SwiperCore.use([Navigation, Pagination]);
 
@@ -188,7 +188,7 @@ const Post: React.FC = () => {
           </Link>
           <div>
             <span>
-              <span className="text-gray-600 font-normal">Liked by</span>
+              <span className="text-gray-600 font-normal">Aimé par</span>
               <Link
                 className="mx-1 hover:underline"
                 to={routes.userProfile(latestUserLiked.user.username)}
@@ -197,10 +197,10 @@ const Post: React.FC = () => {
               </Link>
               {data.obj!.likes_count - 1 > 0 && (
                 <>
-                  <span className="text-gray-600 font-normal">and</span>
+                  <span className="text-gray-600 font-normal">et</span>
                   <Link className="ml-1" to={routes.likedBy(data.obj!.id)}>
                     {data.obj!.likes_count - 1}{" "}
-                    {data.obj!.likes_count - 1 > 1 ? "others" : "other"}
+                    {data.obj!.likes_count - 1 > 1 ? "autres personnes" : "autre personne"}
                   </Link>
                 </>
               )}
@@ -642,7 +642,7 @@ const Post: React.FC = () => {
                                           handleHideRepliesOnClick(cm.id)
                                         }
                                       >
-                                        Hide replies
+                                          Cacher les réponses
                                       </button>
                                     </div>
                                   ) : (
@@ -656,7 +656,7 @@ const Post: React.FC = () => {
                                           )
                                         }
                                       >
-                                        {`View replies (${cm.replies_count})`}
+                                        {`Voir les réponses (${cm.replies_count})`}
                                       </button>
                                       {commentReplies[cm.id].isLoading && (
                                         <Spin
@@ -679,7 +679,7 @@ const Post: React.FC = () => {
                                         )
                                       }
                                     >
-                                      {`View replies (${cm.replies_count})`}
+                                      {`Voir les réponses (${cm.replies_count})`}
                                     </button>
                                   </div>
                                 )
@@ -692,73 +692,74 @@ const Post: React.FC = () => {
                         {handleCommentHeartIcon(cm, cmi)}
                       </div>
                       <div className="ml-12 mt-3">
-                        {commentReplies[cm.id] && commentReplies[cm.id].show && (
-                          <div>
-                            {commentReplies[cm.id].data.length > 0 &&
-                              commentReplies[cm.id].data.map((rep, repi) => (
-                                <div
-                                  key={rep.id}
-                                  className="flex justify-between mb-2"
-                                >
-                                  <div className="w-11/12">
-                                    <div className="flex">
-                                      <div className="mr-1.5 w-2/12">
-                                        <img
-                                          className="w-9 h-9 rounded-full border"
-                                          src={
-                                            rep.user.profile.image.startsWith(
-                                              "http://"
-                                            )
-                                              ? rep.user.profile.image
-                                              : `${endpoint}${rep.user.profile.image}`
-                                          }
-                                          alt={rep.user.username}
-                                        />
-                                      </div>
-                                      <div className="w-10/12">
-                                        <div className="mb-4">
-                                          <span className="font-medium mr-1">
-                                            <Link
-                                              to={routes.userProfile(
-                                                rep.user.username
-                                              )}
-                                              className="hover:underline"
-                                            >
-                                              {rep.user.username}
-                                            </Link>
-                                          </span>
-                                          <span>
-                                            {getCommentText(rep.text)}
-                                          </span>
-                                        </div>
-                                        <div className="flex text-xs text-gray-400 mb-4">
-                                          <Link
-                                            className="font-medium mr-3"
-                                            to="somewhere else"
-                                          >
-                                            <span>{rep.commented_time}</span>
-                                          </Link>
-                                          {handleCommentLikeSection(rep)}
-                                          <span
-                                            className="font-bold cursor-pointer select-none"
-                                            onClick={() =>
-                                              handleReplyOnClick(
-                                                rep.user.username,
-                                                cm.id
+                        {commentReplies[cm.id] &&
+                          commentReplies[cm.id].show && (
+                            <div>
+                              {commentReplies[cm.id].data.length > 0 &&
+                                commentReplies[cm.id].data.map((rep, repi) => (
+                                  <div
+                                    key={rep.id}
+                                    className="flex justify-between mb-2"
+                                  >
+                                    <div className="w-11/12">
+                                      <div className="flex">
+                                        <div className="mr-1.5 w-2/12">
+                                          <img
+                                            className="w-9 h-9 rounded-full border"
+                                            src={
+                                              rep.user.profile.image.startsWith(
+                                                "http://"
                                               )
+                                                ? rep.user.profile.image
+                                                : `${endpoint}${rep.user.profile.image}`
                                             }
-                                          >
-                                            Reply
-                                          </span>
+                                            alt={rep.user.username}
+                                          />
+                                        </div>
+                                        <div className="w-10/12">
+                                          <div className="mb-4">
+                                            <span className="font-medium mr-1">
+                                              <Link
+                                                to={routes.userProfile(
+                                                  rep.user.username
+                                                )}
+                                                className="hover:underline"
+                                              >
+                                                {rep.user.username}
+                                              </Link>
+                                            </span>
+                                            <span>
+                                              {getCommentText(rep.text)}
+                                            </span>
+                                          </div>
+                                          <div className="flex text-xs text-gray-400 mb-4">
+                                            <Link
+                                              className="font-medium mr-3"
+                                              to="somewhere else"
+                                            >
+                                              <span>{rep.commented_time}</span>
+                                            </Link>
+                                            {handleCommentLikeSection(rep)}
+                                            <span
+                                              className="font-bold cursor-pointer select-none"
+                                              onClick={() =>
+                                                handleReplyOnClick(
+                                                  rep.user.username,
+                                                  cm.id
+                                                )
+                                              }
+                                            >
+                                              Répondre
+                                            </span>
+                                          </div>
                                         </div>
                                       </div>
                                     </div>
+                                    {handleReplyHeartIcon(rep, cm.id, repi)}
                                   </div>
-                                  {handleReplyHeartIcon(rep, cm.id, repi)}
-                                </div>
-                              ))}
-                          </div>
-                        )}
+                                ))}
+                            </div>
+                          )}
                       </div>
                     </div>
                   ))}
@@ -790,44 +791,17 @@ const Post: React.FC = () => {
                   to={routes.postDetail(1)}
                   className="text-gray-400 focus:text-opacity-70 uppercase"
                 >
-                  <small>2 weeks</small>
+                  {/* <small>2 weeks</small> */}
                 </Link>
               </div>
             </div>
             <hr />
             <div className="px-4 flex items-center justify-between mt-3 text-gray-700">
               <div className="flex items-center w-11/12 pr-2">
-                <div
-                  className="relative"
-                  onClick={(e: React.MouseEvent) => e.stopPropagation()}
-                >
-                  <EmojiHappyIcon
-                    width={30}
-                    height={30}
-                    cursor="pointer"
-                    className="hover:text-gray-500 mr-3"
-                    onClick={handleShowPicker}
-                  />
-                  {showPicker && (
-                    <Picker
-                      color="#3B82F6"
-                      style={{
-                        position: "absolute",
-                        bottom: 45,
-                        left: 0,
-                        zIndex: 2,
-                        boxShadow: "rgba(99, 99, 99, 0.2) 0 2px 8px 0",
-                      }}
-                      set="apple"
-                      showPreview={false}
-                      onSelect={handleEmojiSelect}
-                    />
-                  )}
-                </div>
                 <TextareaAutosize
                   ref={textAreaRef}
                   maxRows={4}
-                  placeholder="Add a comment"
+                  placeholder="Ajoutez un commentaire"
                   className="w-full outline-none resize-none"
                   style={{ height: 20 }}
                   value={comment.text}
@@ -835,21 +809,22 @@ const Post: React.FC = () => {
                 />
               </div>
               <div>
-                {comment.text.length > 0 ? (
-                  <button
-                    className="text-blue-500 focus:text-blue-400 font-medium"
-                    onClick={handlePostComment}
-                  >
-                    Post
-                  </button>
-                ) : (
-                  <button
-                    className="text-blue-200 focus:text-blue-400 font-medium"
-                    disabled
-                  >
-                    Post
-                  </button>
-                )}
+                <button
+                  onClick={handlePostComment}
+                  disabled={comment.text.length === 0}
+                  className={`
+      flex items-center justify-center
+      p-2 rounded-full
+      transition-all duration-200
+      ${
+        comment.text.length > 0
+          ? "bg-blue-500 hover:bg-blue-600 text-white shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+          : "bg-blue-100 text-blue-200 cursor-not-allowed"
+      }
+    `}
+                >
+                  <Send className="w-6 h-6" />
+                </button>
               </div>
             </div>
           </div>
@@ -861,7 +836,7 @@ const Post: React.FC = () => {
           <div className="mt-10">
             <div className="mb-4">
               <h2 className="font-medium text-gray-400 text-sm">
-                More posts from{" "}
+                Plus de publications de{" "}
                 <Link
                   className="text-gray-700"
                   to={routes.userProfile(data!.obj?.user.username!)}

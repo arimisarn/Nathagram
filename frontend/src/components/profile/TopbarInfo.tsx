@@ -16,7 +16,6 @@ interface PropsIntf {
 
 const TopbarInfo: React.FC<PropsIntf> = ({ username }) => {
   const { width } = useWindowDimensions();
-
   const auth = useAppSelector((state) => state.auth);
 
   const [userInfo, setUserInfo] = useState<userProfileTopBarInfo>({
@@ -32,7 +31,6 @@ const TopbarInfo: React.FC<PropsIntf> = ({ username }) => {
       try {
         const res = await fetchUserInfoService(auth.token, username);
         const data = res.data as userProfileTopBarInfo;
-        console.log(data);
         setUserInfo({
           posts_count: data.posts_count,
           followings_count: data.followings_count,
@@ -74,131 +72,89 @@ const TopbarInfo: React.FC<PropsIntf> = ({ username }) => {
   };
 
   return (
-    <div>
-      <div className="mb-6 md:mb-10 md:px-12 px-4">
-        <div className="flex items-center md:items-stretch">
-          <div className="relative mr-6 md:mr-24">
-            <label
-              title="Add a profile photo"
-              htmlFor="image"
-              className="cursor-pointer"
-            >
-              <img
-                className="w-20 h-20 md:w-40 md:h-40 rounded-full border object-cover"
-                src={userInfo.user?.profile?.image}
-                alt={userInfo.user?.username}
-              />
-            </label>
-            <input
-              className="absolute top-0 bottom-0 left-0 right-0 hidden w-full h-full"
-              type="file"
-              accept="image/*"
-              name="image"
-              id="image"
-            />
-          </div>
-          <div className="mt-4">
-            <div className="flex items-center mb-4 md:mb-6">
-              <h2 className="text-3xl text-gray-600 font-light mr-5">
-                {userInfo.user?.username}
-              </h2>
-              {width > 767 && userInfo.user?.username === auth.user?.username && (
-                <Link
-                  to="/"
-                  className="border font-medium py-1 px-2 rounded text-sm mr-3"
-                >
-                  Edit Profile
-                </Link>
-              )}
-              {userInfo.user?.username === auth.user?.username && (
-                <CogIcon width={27} height={27} cursor="pointer" />
-              )}
-              {userInfo.user?.username !== auth.user?.username &&
-                (userInfo.followed_by_user ? (
-                  <button
-                    onClick={handleUnFollowUser}
-                    className={`border font-medium py-1 px-2 rounded text-sm mr-3 ${
-                      width < 767 ? "block text-center" : ""
-                    }`}
-                  >
-                    Unfollow
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleFollowUser}
-                    className={`border font-medium py-1 px-2 rounded text-sm mr-3 ${
-                      width < 767 ? "block text-center" : ""
-                    }`}
-                  >
-                    Follow
-                  </button>
-                ))}
-            </div>
-            {width < 767 && userInfo.user?.username === auth.user?.username && (
+    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-md p-6 md:px-12 mb-8">
+      <div className="flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-8">
+        {/* Photo de profil */}
+        <div className="relative">
+          <img
+            className="w-24 h-24 md:w-40 md:h-40 rounded-full border-4 border-[#1877F2] object-cover shadow-lg"
+            src={userInfo.user?.profile?.image}
+            alt={userInfo.user?.username}
+          />
+        </div>
+
+        {/* Infos utilisateur */}
+        <div className="flex-1 w-full">
+          <div className="flex items-center gap-4 mb-4 flex-wrap">
+            <h2 className="text-2xl md:text-3xl text-gray-800 dark:text-gray-200 font-semibold">
+              {userInfo.user?.username}
+            </h2>
+
+            {/* Bouton Modifier profil */}
+            {width > 767 && userInfo.user?.username === auth.user?.username && (
               <Link
                 to="/"
-                className="border font-medium py-1 px-2 rounded text-sm mr-3 block text-center"
+                className="px-4 py-1.5 rounded-lg border border-[#1877F2] text-sm font-medium text-[#1877F2] hover:bg-[#E7F3FF] transition"
               >
-                Edit Profile
+                Modifier le profil
               </Link>
             )}
-            {width > 767 && (
-              <div className="text-gray-700">
-                <span className="mr-10">
-                  <b>{userInfo.posts_count}</b> posts
-                </span>
-                <span className="mr-10">
-                  <Link to="">
-                    <b>{userInfo.followers_count}</b> followers
-                  </Link>
-                </span>
-                <span>
-                  <Link to="">
-                    <b>{userInfo.followings_count}</b> following
-                  </Link>
-                </span>
-              </div>
+
+            {/* Icône paramètres */}
+            {userInfo.user?.username === auth.user?.username && (
+              <CogIcon className="w-7 h-7 text-gray-600 dark:text-gray-300 cursor-pointer" />
             )}
+
+            {/* Suivre / Se désabonner */}
+            {userInfo.user?.username !== auth.user?.username &&
+              (userInfo.followed_by_user ? (
+                <button
+                  onClick={handleUnFollowUser}
+                  className="px-4 py-1.5 rounded-lg border text-sm font-medium text-red-500 border-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition"
+                >
+                  Se désabonner
+                </button>
+              ) : (
+                <button
+                  onClick={handleFollowUser}
+                  className="px-4 py-1.5 rounded-lg border text-sm font-medium text-[#1877F2] border-[#1877F2] hover:bg-[#E7F3FF] transition"
+                >
+                  Suivre
+                </button>
+              ))}
           </div>
+
+          {/* Stats desktop */}
+          {width > 767 && (
+            <div className="flex gap-10 text-gray-700 dark:text-gray-300">
+              <span>
+                <b>{userInfo.posts_count}</b> publications
+              </span>
+              <Link to="" className="hover:underline">
+                <b>{userInfo.followers_count}</b> abonnés
+              </Link>
+              <Link to="" className=" hover:underline">
+                <b>{userInfo.followings_count}</b> abonnements
+              </Link>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Stats mobile */}
       {width < 767 && (
-        <ul className="flex items-center border-t justify-center text-sm">
-          <li className="mr-16">
-            <Link to="" className="py-3 text-center block">
-              <div>
-                <span>
-                  <b>{userInfo.posts_count}</b>
-                </span>
-              </div>
-              <div>
-                <span className="font-medium text-gray-400">posts</span>
-              </div>
-            </Link>
+        <ul className="flex items-center justify-around border-t mt-6 pt-4 text-sm dark:border-gray-700">
+          <li className="text-center">
+            <b>{userInfo.posts_count}</b>
+            <div className="text-gray-400">publications</div>
           </li>
-          <li className="mr-16">
-            <Link to="" className="py-3 text-center block">
-              <div>
-                <span>
-                  <b>{userInfo.followers_count}</b>
-                </span>
-              </div>
-              <div>
-                <span className="font-medium text-gray-400">followers</span>
-              </div>
-            </Link>
+          <li className="text-center">
+            <b>{userInfo.followers_count}</b>
+            <div className="text-[#1877F2]">abonnés</div>
           </li>
-          <li>
-            <Link to="" className="py-3 text-center block">
-              <div>
-                <span>
-                  <b>{userInfo.followings_count}</b>
-                </span>
-              </div>
-              <div>
-                <span className="font-medium text-gray-400">following</span>
-              </div>
-            </Link>
+          <li className="text-center">
+            <b>{userInfo.followings_count}</b>
+            <div className="text-[#1877F2]">abonnements</div>
           </li>
         </ul>
       )}

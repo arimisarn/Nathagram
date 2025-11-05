@@ -19,6 +19,9 @@ import Inbox from "./components/direct/Inbox";
 import Post from "./components/post/Post";
 import NotFound from "./components/NotFound";
 import routes from "./routes";
+import Chat from "./chat/Chat";
+import DirectChatPage from "./chat/DirectChatPage";
+import ChatPage from "./chat/ChatPage";
 
 const App = () => {
   const dispatch = useAppDispatch();
@@ -75,11 +78,11 @@ const App = () => {
           }
         />
         <Route
-          path={routes.directInbox}
+          path="/direct/*"
           element={
             <PrivateRoute>
               <Layout>
-                <Inbox />
+                <ChatPage />
               </Layout>
             </PrivateRoute>
           }

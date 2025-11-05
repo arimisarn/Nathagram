@@ -1,169 +1,144 @@
-import { useMemo } from 'react';
-import { Link, Navigate } from 'react-router-dom';
-import { LockClosedIcon } from '@heroicons/react/solid';
-import { Formik } from 'formik';
-import * as Yup from 'yup';
-import queryString from 'query-string';
-import routes from '../../routes';
-import { useAppDispatch, useAppSelector } from '../../redux/store';
-import { loginUser } from '../../redux/slice/auth';
-import { LoginInterface } from '../../interfaces/auth';
-import { requiredValidation } from '../../validation';
-import Button from '../features/Button';
-import AuthLoading from '../AuthLoading';
-
+import { useMemo } from "react";
+import { Link, Navigate } from "react-router-dom";
+import { LockClosedIcon } from "@heroicons/react/solid";
+import { Formik } from "formik";
+import * as Yup from "yup";
+import queryString from "query-string";
+import routes from "../../routes";
+import { useAppDispatch, useAppSelector } from "../../redux/store";
+import { loginUser } from "../../redux/slice/auth";
+import { LoginInterface } from "../../interfaces/auth";
+import { requiredValidation } from "../../validation";
+import Button from "../features/Button";
+import AuthLoading from "../AuthLoading";
 
 const Login = () => {
-
-  const auth = useAppSelector(state => state.auth);
+  const auth = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
   const parsedQueries: any = queryString.parse(window.location.search);
 
-  const initialValues: LoginInterface = useMemo(() => {
-    return {
-      username: '',
-      password: '',
-    }
-  }, []);
+  const initialValues: LoginInterface = useMemo(
+    () => ({
+      username: "",
+      password: "",
+    }),
+    []
+  );
 
-  if (auth.isLoading) {
-    return <AuthLoading />
-  };
-
-  if (auth.isAuthenticated) {
-    return <Navigate to={parsedQueries.next || '/'} />
-  };
+  if (auth.isLoading) return <AuthLoading />;
+  if (auth.isAuthenticated) return <Navigate to={parsedQueries.next || "/"} />;
 
   return (
-    <div className="min-h-full flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-sm w-full space-y-3">
-        <div className="px-2 py-10 sm:px-10 sm:bg-white sm:border">
-          <div>
-            <h1 className="logo-font text-center text-5xl cursor-default font-extrabold text-gray-900">Instagram</h1>
-          </div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-purple-100 via-blue-100 to-yellow-100 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-6">
+        <div className="bg-white rounded-2xl shadow-lg px-8 py-10">
+          <h1 className="logo-font text-center text-5xl cursor-default font-extrabold text-gray-900 mb-4">
+            Nathagram
+          </h1>
+          <p className="text-center text-gray-500 mb-6">
+            Connectez-vous pour voir les photos et vidéos de vos amis.
+          </p>
+
           <Formik
-          initialValues={initialValues}
-          validationSchema={Yup.object({
-            username: Yup.string()
-            .required(requiredValidation.message),
-            password: Yup.string()
-            .required(requiredValidation.message)
-          })}
-          onSubmit={(values) => {
-              dispatch(loginUser(values));
-            }
-          }
+            initialValues={initialValues}
+            validationSchema={Yup.object({
+              username: Yup.string().required(requiredValidation.message),
+              password: Yup.string().required(requiredValidation.message),
+            })}
+            onSubmit={(values) => dispatch(loginUser(values))}
           >
             {({
               values,
               errors,
-              handleChange, 
+              handleChange,
               handleSubmit,
               handleBlur,
-              touched
+              touched,
             }) => (
-              <form 
-              className="mt-8 space-y-6" 
-              method="POST"
-              onSubmit={handleSubmit}
-              >
-                <input type="hidden" name="remember" defaultValue="true" />
-                <div className="rounded-md shadow-sm -space-y-px">
-                  <div className="mb-2">
-                    <label htmlFor="username" className="sr-only">
-                      Username
-                    </label>
+              <form className="space-y-5" onSubmit={handleSubmit}>
+                <div className="space-y-4">
+                  <div>
                     <input
-                      required
                       id="username"
                       name="username"
                       type="text"
                       value={values.username}
                       onChange={handleChange}
                       onBlur={handleBlur}
-                      className="appearance-none relative block 
-                      w-full px-3 py-2 bg-gray-100 border border-gray-300 
-                      placeholder-gray-500 text-gray-900 rounded 
-                      focus:outline-none focus:border-gray-400 focus:z-10 sm:text-sm"
-                      placeholder="Username"
+                      placeholder="Nom d'utilisateur"
+                      className={`w-full px-4 py-2 rounded-lg border ${
+                        touched.username && errors.username
+                          ? "border-red-500"
+                          : "border-gray-300"
+                      } focus:outline-none focus:ring-2 focus:ring-purple-400 bg-gray-50`}
                     />
-                    {
-                      touched.username
-                      &&
-                      errors.username 
-                      &&
-                      <div className="text-red-600 fw-medium mt-2 mb-4 text-sm">
+                    {touched.username && errors.username && (
+                      <p className="text-red-600 text-sm mt-1">
                         {errors.username}
-                      </div> 
-                    }
+                      </p>
+                    )}
                   </div>
+
                   <div>
-                    <label htmlFor="password" className="sr-only">
-                      Password
-                    </label>
                     <input
-                      required
                       id="password"
                       name="password"
                       type="password"
                       value={values.password}
                       onChange={handleChange}
                       onBlur={handleBlur}
-                      className="appearance-none relative block 
-                      w-full px-3 py-2 bg-gray-100 border border-gray-300 
-                      placeholder-gray-500 text-gray-900 rounded 
-                      focus:outline-none focus:border-gray-400 focus:z-10 sm:text-sm"
-                      placeholder="Password"
+                      placeholder="Mot de passe"
+                      className={`w-full px-4 py-2 rounded-lg border ${
+                        touched.password && errors.password
+                          ? "border-red-500"
+                          : "border-gray-300"
+                      } focus:outline-none focus:ring-2 focus:ring-purple-400 bg-gray-50`}
                     />
-                    {
-                      touched.password
-                      &&
-                      errors.password 
-                      &&
-                      <div className="text-red-600 fw-medium mt-2 mb-4 text-sm">
+                    {touched.password && errors.password && (
+                      <p className="text-red-600 text-sm mt-1">
                         {errors.password}
-                      </div> 
-                    }
+                      </p>
+                    )}
                   </div>
                 </div>
-                <div>
+
                 <Button
                   type="submit"
-                  text="Log in"
+                  text="Se connecter"
                   symbol={
-                    <span className="absolute left-0 inset-y-0 flex items-center pl-3">
-                      <LockClosedIcon className="h-5 w-5 text-blue-400" aria-hidden="true" />
-                    </span>
+                    <LockClosedIcon className="h-5 w-5 text-white mr-2" />
                   }
                   loading={auth.loginLoading}
-                  className="group relative w-full flex justify-center 
-                  py-2 px-4 border border-transparent text-sm font-medium 
-                  rounded text-white bg-blue-500 focus:bg-blue-400 
-                  focus:outline-none" />
-                </div>
+                  className="w-full flex justify-center items-center py-2 px-4 bg-purple-500 hover:bg-purple-600 text-white font-semibold rounded-lg shadow-md transition-colors"
+                />
+
                 <div className="text-center">
-                  <Link to={routes.resetPassword} className="text-gray-700 focus:text-gray-400 text-sm">
-                    Forgot password?
+                  <Link
+                    to={routes.resetPassword}
+                    className="text-gray-500 hover:text-gray-400 text-sm"
+                  >
+                    Mot de passe oublié ?
                   </Link>
                 </div>
               </form>
             )}
-          </Formik>  
+          </Formik>
         </div>
-        <div className="py-4 px-2 sm:px-10 sm:bg-white sm:border">
-          <div className="text-center">
-            <div>
-              Don't have an account?
-              <Link to={routes.register} className="font-medium text-blue-500
-              focus:text-blue-300 ml-1">
-                Sign up
-              </Link>
-            </div>
-          </div>
+
+        <div className="text-center">
+          <p className="text-gray-600">
+            Vous n'avez pas de compte ?{" "}
+            <Link
+              to={routes.register}
+              className="text-purple-500 font-medium hover:text-purple-400"
+            >
+              Inscrivez-vous
+            </Link>
+          </p>
         </div>
       </div>
     </div>
-  )
+  );
 };
 
 export default Login;

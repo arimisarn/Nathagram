@@ -6,11 +6,15 @@ const routes = {
   userProfile: (username: string) => `/${username}`,
   userProfileStr: "/:username",
   explore: "/explore",
-  directInbox: "/direct/inbox",
+  // directInbox: "/direct/inbox",
   likedBy: (postID: number) => `/p/${postID}/liked_by`,
   tags: (tagName: string) => `${routes.explore}/tags/${tagName}`,
   postDetail: (postID: number) => `/p/${postID}`,
   postDetailStr: "/p/:id",
+  profileEdit: "/edit-profile", // <-- nouvelle route
+  inbox: "/direct",
+  directChat: "/direct/:conversationId",
+  // postDetailStr: "/p/:postId",
 };
 
 export default routes;

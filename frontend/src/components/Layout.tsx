@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import Navbar from "./Navbar";
 import AddPost from "./AddPost";
 import { useAppSelector } from "../redux/store";
+import Sidebar from "./Sidebar";
 
 const Layout: React.FC = ({ children }) => {
   const addPostState = useAppSelector((state) => state.addPost);
@@ -16,6 +17,8 @@ const Layout: React.FC = ({ children }) => {
 
   return (
     <div className="h-screen">
+      {/* <Sidebar /> */}
+
       <Navbar />
       {addPostState.showAddPostModal && <AddPost />}
       <div className="mt-20 max-w-screen-extmedium mx-auto pb-10">
